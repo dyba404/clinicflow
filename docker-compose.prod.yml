@@ -1,0 +1,134 @@
+# Stack de producción: db + lycet (sidecar SUNAT) + web (Next.js standalone) + cron (supercronic).
+# Uso: copia .env.prod.example a .env, completa los obligatorios y ejecuta
+#      docker compose -f docker-compose.prod.yml up -d --build
+# Los valores obligatorios usan ${VAR:?mensaje}: sin ellos el `up` falla a
+# propósito (no se despliega con secretos inseguros por defecto).
+
+name: clinicflow-prod
+
+services:
+  db:
+    image: postgres:16
+    container_name: clinicflow-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-clinicflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatorio (ver .env.prod.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-clinicflow}
+    # Sin puertos publicados a la máquina: solo accesible desde la red interna.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinicflow} -d ${POSTGRES_DB:-clinicflow}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  lycet:
+    build:
+      context: ./.references/lycet
+    image: clinicflow-lycet:prod
+    container_name: clinicflow-lycet-prod
+    restart: unless-stopped
+    environment:
+      CLIENT_TOKEN: ${LYCET_TOKEN:?LYCET_TOKEN obligatorio (no uses el default 123456)}
+      CORS_ALLOW_ORIGIN: .
+    # Sin puerto publicado: web lo llama por la red interna (http://lycet:8000).
+    volumes:
+      - lycetdata:/var/www/html/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      # Contexto en la raíz del monorepo: el Dockerfile necesita package-lock.json,
+      # packages/* y tsconfig.base.json para npm ci con workspaces.
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: clinicflow-web:prod
+    container_name: clinicflow-web-prod
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      lycet:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3111"
+      HOSTNAME: 0.0.0.0
+      # packages/db/src/client.ts extrae host/puerto de DATABASE_URL para su sondeo TCP
+      # (packages/db/src/client.ts); dentro de la red el host es `db`.
+      DATABASE_URL: postgres://${POSTGRES_USER:-clinicflow}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatorio (ver .env.prod.example)}@${DATABASE_HOST:-db}:5432/${POSTGRES_DB:-clinicflow}
+      CRON_SECRET: ${CRON_SECRET:?CRON_SECRET obligatorio (genera uno aleatorio, ver .env.prod.example)}
+      LYCET_URL: http://lycet:8000
+      LYCET_TOKEN: ${LYCET_TOKEN:?LYCET_TOKEN obligatorio (no uses el default 123456)}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL obligatorio (URL publica HTTPS, ver .env.prod.example)}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-}
+      # resend es el canal de producción; smtp-dev solo existe en docker-compose.yml (Mailpit).
+      MAIL_MODE: ${MAIL_MODE:-resend}
+      WA_REPLY_MODE: ${WA_REPLY_MODE:-single}
+      YAPE_PLIN_NUMBER: ${YAPE_PLIN_NUMBER:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      LOCAL_MASTER_KEY: ${LOCAL_MASTER_KEY:?LOCAL_MASTER_KEY obligatorio (define UNA vez, ver .env.prod.example)}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+    ports:
+      - "${WEB_PORT:-3111}:3111"
+    volumes:
+      # La app guarda adjuntos en <cwd>/.data/attachments => /app/apps/web/.data/attachments.
+      - attachments:/app/apps/web/.data
+    healthcheck:
+      # /api/health valida app + conexión a DB (devuelve 503 sin DB).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3111/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Solo herramientas: no arranca con `up` (profile tools).
+  # La imagen standalone de `web` no incluye drizzle-kit ni las migraciones SQL,
+  # por eso migrate usa el stage de build completo del mismo Dockerfile.
+  # Uso: docker compose -f docker-compose.prod.yml run --rm migrate npm run db:migrate
+  #      docker compose -f docker-compose.prod.yml run --rm migrate npm run db:seed
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: build
+    image: clinicflow-web-build:prod
+    profiles: ["tools"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-clinicflow}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatorio (ver .env.prod.example)}@${DATABASE_HOST:-db}:5432/${POSTGRES_DB:-clinicflow}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cron:
+    build:
+      context: ./docker/cron
+    image: clinicflow-cron:prod
+    container_name: clinicflow-cron-prod
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      CRON_SECRET: ${CRON_SECRET:?CRON_SECRET obligatorio (genera uno aleatorio, ver .env.prod.example)}
+      # Credenciales para el respaldo diario de la BD (backup-db.sh → /backups).
+      POSTGRES_USER: ${POSTGRES_USER:-clinicflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obligatorio (ver .env.prod.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-clinicflow}
+      DATABASE_HOST: ${DATABASE_HOST:-db}
+      DATABASE_PORT: "5432"
+    volumes:
+      # ./backups del host: pg_dump diario, retención 30 días (gitignored).
+      - ./backups:/backups
+
+volumes:
+  pgdata:
+  lycetdata:
+  attachments:

@@ -1,0 +1,72 @@
+services:
+  db:
+    image: postgres:16
+    container_name: clinicflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clinicflow
+      POSTGRES_PASSWORD: clinicflow_dev
+      POSTGRES_DB: clinicflow
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinicflow -d clinicflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  lycet:
+    build:
+      context: ./.references/lycet
+    image: clinicflow-lycet:local
+    container_name: clinicflow-lycet
+    restart: unless-stopped
+    environment:
+      CLIENT_TOKEN: ${LYCET_TOKEN:-123456}
+      CORS_ALLOW_ORIGIN: .
+    ports:
+      - "8091:8000"
+    volumes:
+      - lycetdata:/var/www/html/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: clinicflow-mailpit
+    restart: unless-stopped
+    ports:
+      - "1026:1025"
+      - "8026:8025"
+
+  whatsmock:
+    build:
+      context: ./.references/whap
+    image: clinicflow-whatsmock:local
+    container_name: clinicflow-whatsmock
+    restart: unless-stopped
+    environment:
+      # whatsmock devuelve aqui los webhooks simulados. OJO: dentro de WSL-Docker,
+      # host.docker.internal apunta al bridge de Docker (172.18.0.1), no a Windows.
+      # La ruta que alcanza al host es la IP vEthernet(WSL) de Windows (p.ej. 172.17.48.1).
+      # Sobrescribir con WHATSAPP_WEBHOOK_URL si la IP del host cambia.
+      WEBHOOK_URL: ${WHATSAPP_WEBHOOK_URL:-http://172.17.48.1:3112/api/whatsapp/webhook}
+    ports:
+      - "3011:3010"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:3010/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 10
+
+volumes:
+  pgdata:
+  lycetdata:

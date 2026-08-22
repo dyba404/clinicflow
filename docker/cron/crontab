@@ -1,0 +1,24 @@
+# Cron de clinicflow (ejecutado por supercronic).
+# $CRON_SECRET se inyecta en el contenedor desde docker-compose.prod.yml.
+# Los endpoints validan el header Authorization: Bearer $CRON_SECRET.
+
+CRON_TZ=America/Lima
+
+# Cada hora (minutos distintos para no saturar web/db):
+# recordatorios 24h antes de citas
+5 * * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/recordatorios
+# renovaciones de suscripción
+15 * * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/renovaciones
+# fiscal (estado de comprobantes SUNAT / bajas)
+25 * * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/fiscal
+
+# Diarios por la mañana:
+# digest diario
+0 8 * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/diario
+# recall de pacientes
+10 8 * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/recall
+# seguimiento de presupuestos/cuotas
+20 8 * * * curl -sf -m 300 -X POST -H "Authorization: Bearer $CRON_SECRET" http://web:3111/api/cron/seguimiento
+
+# Respaldo diario de la base de datos (pg_dump → /backups, retención 30 días).
+40 3 * * * /etc/supercronic/backup-db.sh

@@ -1,0 +1,23 @@
+{
+  "name": "@clinicflow/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok",
+    "test": "node --test --import tsx \"src/slots.test.ts\" \"src/appointment-state.test.ts\" \"src/permissions.test.ts\""
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.23"
+  }
+}

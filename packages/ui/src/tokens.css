@@ -1,0 +1,26 @@
+/* clinicflow — design tokens: clínico calmado (teal + neutros cálidos) */
+:root {
+  /* marca */
+  --of-primary: #0f766e;        /* teal-700 */
+  --of-primary-hover: #115e59;  /* teal-800 */
+  --of-primary-soft: #ccfbf1;   /* teal-100 */
+  --of-on-primary: #ffffff;
+
+  /* neutros cálidos */
+  --of-bg: #faf9f7;
+  --of-surface: #ffffff;
+  --of-border: #e7e3de;
+  --of-text: #292524;           /* stone-800 */
+  --of-text-muted: #78716c;     /* stone-500 */
+
+  /* estados de cita */
+  --of-st-pendiente: #d97706;   /* ámbar */
+  --of-st-confirmada: #2563eb;  /* azul */
+  --of-st-espera: #7c3aed;      /* violeta */
+  --of-st-atendida: #16a34a;    /* verde */
+  --of-st-noshow: #dc2626;      /* rojo */
+
+  /* tipografía y métricas */
+  --of-font-sans: "Inter", "Geist", system-ui, sans-serif;
+  --of-radius: 10px;
+}

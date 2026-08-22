@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-surface-hover: var(--surface-hover);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: hsl(45 25% 98%);
+  --foreground: hsl(24 9% 14%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(24 9% 14%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(24 9% 14%);
+  --primary: hsl(174 66% 26%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(40 14% 93%);
+  --secondary-foreground: hsl(24 9% 14%);
+  --muted: hsl(40 14% 95%);
+  --muted-foreground: hsl(24 6% 44%);
+  --accent: hsl(173 58% 93%);
+  --accent-foreground: hsl(174 66% 22%);
+  --destructive: hsl(0 72% 45%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(42 12% 90%);
+  --border-subtle: hsl(42 12% 93%);
+  --surface-hover: hsl(40 14% 96%);
+  --input: hsl(42 12% 85%);
+  --ring: hsl(174 55% 40%);
+  --sidebar: hsl(222 18% 11%);
+  --sidebar-foreground: hsl(220 12% 86%);
+  --sidebar-accent: hsl(222 14% 18%);
+  --sidebar-accent-foreground: hsl(0 0% 100%);
+  --sidebar-border: hsl(222 14% 20%);
+  --chart-1: hsl(174 66% 26%);
+  --chart-2: hsl(200 75% 45%);
+  --chart-3: hsl(38 90% 50%);
+  --chart-4: hsl(150 55% 42%);
+  --chart-5: hsl(24 6% 44%);
+
+  --of-primary: var(--primary);
+  --of-primary-hover: hsl(174 66% 22%);
+  --of-primary-soft: var(--accent);
+  --of-on-primary: var(--primary-foreground);
+  --of-bg: var(--background);
+  --of-surface: var(--card);
+  --of-border: var(--border);
+  --of-text: var(--foreground);
+  --of-text-muted: var(--muted-foreground);
+  --of-st-pendiente: hsl(32 95% 44%);
+  --of-st-confirmada: hsl(217 85% 50%);
+  --of-st-espera: hsl(262 70% 55%);
+  --of-st-atendida: hsl(150 55% 36%);
+  --of-st-noshow: hsl(0 72% 45%);
+  --of-radius: var(--radius);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(40 8% 78%);
+    border-radius: 8px;
+    border: 2px solid var(--background);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  input[type="date"],
+  input[type="time"] {
+    min-height: 2.25rem;
+  }
+}

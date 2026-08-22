@@ -1,0 +1,36 @@
+{
+  "name": "@clinicflow/db",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo ok",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx src/seed.ts",
+    "db:carga-cie10": "tsx src/carga-cie10.ts",
+    "db:seed:founder": "tsx src/seed-founder.ts",
+    "db:clean": "tsx src/limpia-datos-qa.ts",
+    "admin:change-password": "tsx src/cambiar-contrasena-admin.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.23",
+    "tsx": "^4.23.12"
+  }
+}

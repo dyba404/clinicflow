@@ -1,0 +1,38 @@
+# Contexto de build de apps/web/Dockerfile (context: raíz del monorepo).
+# Mantiene fuera del contexto node_modules, artefactos, secretos y las referencias.
+
+.git
+.gitignore
+.opencode
+.references
+docker
+docker-compose.yml
+docker-compose.prod.yml
+Dockerfile
+**/Dockerfile
+
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/*.tsbuildinfo
+apps/web/.data
+pgdata
+coverage
+
+# Secretos: nunca dentro del contexto ni de la imagen
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Artefactos y notas locales
+*.log
+logs-*.txt
+smoke-server.log
+session-*.md
+cookies.txt
+docs
+scripts
+README.md
+.DS_Store

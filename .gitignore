@@ -1,0 +1,32 @@
+node_modules/
+dist/
+.next/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.vercel/
+coverage/
+.turbo/
+.references/
+pgdata/
+*.tsbuildinfo
+
+# Desarrollo local / sesión: nunca al repo
+logs-*.txt
+session-*.md
+.opencode/
+cookies.txt
+smoke-server.log
+
+# Adjuntos de pacientes (archivos clínicos): jamás al repo
+apps/web/.data/
+
+# Respaldos pg_dump locales
+backups/
+
+# Playwright (artefactos de E2E)
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/playwright/.cache/

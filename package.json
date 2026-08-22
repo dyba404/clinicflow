@@ -1,0 +1,37 @@
+{
+  "name": "clinicflow",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SaaS de gestión para consultorios odontológicos en Perú",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @clinicflow/web",
+    "build": "npm run build -w @clinicflow/db -w @clinicflow/core -w @clinicflow/ui -w @clinicflow/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test -w @clinicflow/core",
+    "test:e2e": "npm run test:e2e -w @clinicflow/web",
+    "test:e2e:vivo": "npm run test:e2e:vivo -w @clinicflow/web",
+    "test:e2e:vivo-serie": "npm run test:e2e:vivo-serie -w @clinicflow/web",
+    "of:up": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/of.ps1 up",
+    "of:down": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/of.ps1 down",
+    "of:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/of.ps1 status",
+    "of:db": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/of.ps1 db",
+    "of:serve": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/serve-console.ps1",
+    "db:generate": "npm run db:generate -w @clinicflow/db",
+    "db:migrate": "npm run db:migrate -w @clinicflow/db",
+    "db:seed": "npm run db:seed -w @clinicflow/db",
+    "db:seed:founder": "npm run db:seed:founder -w @clinicflow/db",
+    "admin:change-password": "npm run admin:change-password -w @clinicflow/db"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.23"
+  }
+}
