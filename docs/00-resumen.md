@@ -38,8 +38,12 @@ compose prod fail-closed).
 - Tiempo de implementación por clínica < 2 semanas (migración de datos + capacitación)
 
 ## Estado
-OLA 0 completa (2026-08-19): repo creado, 223 archivos renombrados byte-safe UTF-8
-(0 mojibake), puertos dev separados del odontoflow vivo en el mismo host, `.references`
-clonadas, docs reescritas (este documento), npm install limpio. Sistema heredado
-maduro funcionando (ver `99-sesion-estado.md`). OLAs 1-4 por desarrollar:
-`02-roadmap.md`.
+OLAs 0-4 completas y verificadas (ver `99-sesion-estado.md`): núcleo de consulta
+externa (OLA 1), hospitalización + laboratorio + farmacia (OLA 2), quirófano +
+UCI + facturación institucional (OLA 3), portal del paciente + hardening
+(OLA 4). OLA 5/6 en curso: portal con login real, series de citas,
+consentimientos v2 con firma, planes de tratamiento, no-show con recuperación,
+round-robin + feriados y hospitalización 2.0 (depósitos, liquidación, handover).
+Gating por plan implementado (`lib/plans.ts`, ~20 rutas con `gatePlan`).
+Pendiente externo: VPS/dominio, Resend, WhatsApp Meta, CI remoto
+(ver checklist en `01-topologia.md`).

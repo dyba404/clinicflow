@@ -22,91 +22,53 @@ queda en el repo original. Aquí solo se registra lo de clinicflow.
       lycet / greenter / whap → fiscal y WhatsApp (copiados como estaban)
 - [x] Docs reescritas para clinicflow (archivos 00-06); 10 y 99 los mantiene otro agente
 - [x] `npm install` limpio
-- [ ] npm install / typecheck / lint verificado (pendiente de sesión de arranque)
+- [x] npm install / typecheck / lint verificado (Gate OLA 0, ver 99-sesion-estado)
 
 **Salida:** workspace clinicflow corre sin tocar odontoflow; listo para OLA 1.
 
 ---
 
-## [ ] OLA 1 — Núcleo de consulta externa (3 agentes en paralelo)
+## [x] OLA 1 — Núcleo de consulta externa (Sesión 2, 2026-08-20)
 
 Objetivo: una clínica que solo hace consulta externa puede operar todo su día.
 Puerta de venta: la clínica ve agenda + historia CIE-10 + laboratorio/imagen ordenados
 y cobra/factura igual que hoy.
 
-### Agente 1.1 — Paciente / ficha multi-especialidad + historias clínicas
-- [ ] Port del módulo pacientes/ficha de odontoflow adaptado a clínica médica
-- [ ] Quitar odontograma (FDI) y campos dentales de la ficha
-- [ ] Ficha por persona: datos, antecedentes, alergias, medicación, gestación pasan a modelo médico
-- [ ] Historias clínicas por especialidad: soporte para múltiples especialidades por paciente
-- [ ] Registro "historia vista por" (auditoría Ley 29733) sobre cada lectura de ficha
+- [x] Ficha de paciente médico (sin odontograma), antecedentes/alergias/medicación
+- [x] Catálogo CIE-10 (ICD-10-CM 2026, 98,186 códigos) + diagnósticos por consulta
+- [x] Sala de espera con triaje (leve/moderado/urgente)
+- [x] Consulta con nota SOAP + diagnósticos CIE-10 + recetas
+- [x] Órdenes de laboratorio/imagen desde la consulta
+- [x] Auditoría "historia vista por" (Ley 29733)
 
-### Agente 1.2 — Catálogo CIE-10 y diagnósticos
-- [ ] Nueva tabla `diagnoses` (diagnósticos aplicados a consulta) + catálogo CIE-10
-- [ ] Carga del catálogo CIE-10 desde fuente MINSA (script + seed)
-- [ ] Selector de diagnóstico en consulta con búsqueda por código/descripción
-
-### Agente 1.3 — Agenda multi-especialidad + espera con triaje + consulta
-- [ ] Agenda con recursos = doctor + consultorio (no solo doctor)
-- [ ] Sala de espera con paso de triaje antes de consulta
-- [ ] Consulta con nota SOAP (subjetivo/objetivo/análisis/plan)
-- [ ] Diagnóstico CIE-10 por consulta (ligado a la tabla diagnoses)
-- [ ] Orden de laboratorio / imagen desde la consulta (prepara OLA 2)
-- [ ] Obligaciones y consentimientos canvas→PDF (portado de odontoflow, adaptados a médico)
-- [ ] Cotización de tratamiento: presupuesto/cuota se mantiene como cotización (quotes/installments)
-
-**Salida OLA 1:** demo vendible "solo consulta externa". Vendible y medible.
+**Salida OLA 1:** demo vendible "solo consulta externa". Gate VERDE (14/14 E2E).
 
 ---
 
-## [ ] OLA 2 — Diagnóstico + hospitalización (3 agentes en paralelo)
+## [x] OLA 2 — Diagnóstico + hospitalización (Sesión 3, 2026-08-20)
 
 Objetivo: clínicas con internamiento corto (20-100 camas) y sus servicios de apoyo.
 
-### Agente 2.1 — Hospitalización
-- [ ] Admisión del paciente (estado + motivo + servicio)
-- [ ] Pivote de camas: asignar/liberar/transferir cama
-- [ ] Evolución diaria (nota de evolución por día de internamiento)
-- [ ] Epicrisis al egreso (documento de alta)
-- [ ] Transferencia de cama y alta (voluntaria / médica)
+- [x] Hospitalización: admisión, camas (asignar/transferir/liberar), evoluciones,
+      epicrisis al egreso, alta médica/voluntaria, abandono
+- [x] Signos vitales por turno (mañana/tarde/noche) con rangos clínicos validados
+- [x] Laboratorio clínico: orden→toma→procesada→validada→liberada→entregada,
+      resultados por parámetro con rango, PDF de resultados
+- [x] Farmacia interna FEFO (dispensación ligada a stock/lotes)
 
-### Agente 2.2 — Enfermería por turno
-- [ ] Turnos de enfermería (mañana/tarde/noche)
-- [ ] Signos vitales como observaciones (presión, temperatura, FC, FR, SpO2)
-- [ ] Registro por turno con responsable + audit
-
-### Agente 2.3 — Laboratorio clínico + imagen + farmacia interna
-- [ ] Laboratorio clínico: orden→toma→procesar→validar→liberar→entregar
-      (flujo de referencia: openemr, lectura con validación clínica)
-- [ ] Resultados por parámetro con rango de referencia (text/numérico + unidad)
-- [ ] PDF de resultados para el paciente y el médico
-- [ ] Reemplaza `lab_orders` de odontoflow (que es prótesis dental) por órdenes clínicas
-- [ ] Imagen: orden→informe→adjunto PDF (visor DICOM OHIF queda en backlog)
-- [ ] Farmacia interna: dispensación ligada a orden médica
-- [ ] Kardex y lotes con FEFO (reutiliza `inventory_items` / `stock_movements` de odontoflow renombrados a "fármacos / movimientos")
-
-**Salida OLA 2:** hospitalización corta operativa + laboratorio/imagen/farmacia en línea.
-Vendible como clínica integral.
+**Salida OLA 2:** hospitalización corta operativa + laboratorio/farmacia en línea.
 
 ---
 
-## [ ] OLA 3 — Cirugía + institucional (2 agentes)
+## [x] OLA 3 — Cirugía + institucional (Sesión 4, 2026-08-20)
 
-### Agente 3.1 — Sala de operaciones (quirófano)
-- [ ] Programación de cirugía (fecha, sala, equipo, procedimiento)
-- [ ] Checklist pre-operatorio
-- [ ] Clasificación anestésica ASA + registro de anestesia
-- [ ] Registro intraoperatorio (inicio/fin, equipo, complicaciones)
-- [ ] URPA (recuperación post-anestésica)
-- [ ] Regreso a piso o egreso post-URPA
+- [x] Quirófano: programación, salas, checklist preop 6 ítems, ASA, registro
+      intraoperatorio, URPA, Gantt por sala
+- [x] UCI simplificada: estancias, balance hídrico, egreso
+- [x] Facturación institucional: facturas por admisión con ítems, convenios
+      (EPS/seguro) con descuento, estados borrador→emitida→pagada|anulada
 
-### Agente 3.2 — UCI simplificada + facturación institucional
-- [ ] UCI simplificada: monitoreo + hoja de balance hídrico
-- [ ] Refuerzo de facturación institucional:
-      box/comprobante por paciente + convenio con aseguradoras (EPS/seguro)
-      (se apoya en `insurers`/`patient_coverages` heredados, renombrados a convenios)
-
-**Salida OLA 3:** clínicas con quirófano y UCI. Planes Premium completos.
+**Salida OLA 3:** clínicas con quirófano y UCI. Gate VERDE (14/14 E2E).
 
 ---
 
@@ -129,6 +91,29 @@ Vendible como clínica integral.
       verificado como portable a VPS
 
 **Salida OLA 4:** producto terminado para venta escalada; 5-10 clínicas objetivo.
+
+---
+
+## [x] OLA 5 — Portal serio + SaaS maduro (Sesiones 5-6, 2026-08-21/22)
+
+- [x] Portal del paciente con login (celular + contraseña + slug de clínica),
+      activación desde la ficha, resultados publicados por el médico,
+      representantes ("pacientes a tu cargo"), ocultamiento por diagnóstico
+- [x] Notificaciones por correo (consulta publicada, etc.)
+- [x] 6.1 Constraint GIST anti doble-booking (`appointments_no_overlap`) + 409 amable
+- [x] 6.2 Producción por doctor (`/consola/produccion`)
+- [x] 6.3 Series de citas recurrentes (`/api/series`, `/consola/series`)
+- [x] 6.4 Consentimientos v2 (plantillas + firma en canvas)
+- [x] 6.5 Planes de tratamiento (treatmentPlans/items/sesiones, `/consola/planes`)
+- [x] 6.6 No-show con recuperación (enlace para re-agendar)
+- [x] 6.8 Round-robin + feriados (tabla `holidays`, `teams.round_robin`,
+      auto-asignación en reserva pública, `/consola/config/feriados`)
+- [x] 6.7 Hospitalización 2.0: depósitos a cuenta (`admission_deposits` ligados
+      a `payments`), liquidación (facturado − depositado = saldo) y handover
+      de enfermería (`admission_handovers`) en el detalle de la admisión
+
+**Salida OLA 5/6:** portal con cuenta real + operación madura (series, planes,
+consentimientos firmados, caja de hospitalización).
 
 ---
 

@@ -63,6 +63,23 @@ Windows 11 24H2
 - `.references/` (gitignored) clonada en `clinicflow/.references/`: medplum (Apache-2.0), openemr (GPL-3.0), openmrs, lycet, greenter, whap.
 - Desde Windows: `postgres://clinicflow:clinicflow_dev@localhost:5433/clinicflow` (ver `.env.local.example`).
 
+**VM WSL compartida con odontoflow (keep-alive):**
+
+La VM WSL (Ubuntu) es la MISMA para ambos proyectos. wslservice la apaga por
+inactividad cuando muere la última sesión (vmIdleTimeout=-1 de .wslconfig no
+se honra sin `wsl --shutdown` previo), lo que mata dockerd y los contenedores
+de AMBOS proyectos. La mantiene viva la tarea programada
+`OdontoFlow-WSL-Boot` del proyecto odontoflow: sesión eterna oculta vía VBS
+(`sleep infinity` sin ventana) + triggers logon/1-min como red de seguridad
+(fix de la sesión 28 de odontoflow, bug #4, commit `6039550`; verificado
+41 OK/0 fallos y relanzamiento automático en 25s tras kill manual).
+
+- Reproducible tras formatear la máquina: un solo comando restaura todo →
+  `odontoflow\scripts\configurar-keepalive-wsl.ps1` (usa
+  `odontoflow\scripts\keepalive-sesion.vbs`).
+- `scripts/of.ps1 up` aporta además un keep-alive secundario propio
+  (`wsl tail -f /dev/null`) mientras Postgres esté arriba.
+
 ## Producción (docker-compose.prod.yml fail-closed, portado)
 
 ```
