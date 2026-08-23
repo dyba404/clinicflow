@@ -8,5 +8,5 @@ export default async function PortalPage({
   params: Promise<{ clinica: string; token: string }>;
 }) {
   const { token } = await params;
-  return <PortalPaciente token={token} />;
+  return <PortalPaciente token={token} conSesion={token === "mio"} />;
 }

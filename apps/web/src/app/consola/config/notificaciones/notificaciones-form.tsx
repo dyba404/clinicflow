@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Bell, Check, Mail, RefreshCw, Star } from "lucide-react";
+import { Bell, Check, Mail, RefreshCw, Star, UserX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export function NotificacionesForm({
   idiomaPlantilla,
   resenaAutomatica,
   recallAuto,
+  noShowRecovery,
   digestDiario,
 }: {
   recordatorio24h: boolean;
@@ -26,6 +27,7 @@ export function NotificacionesForm({
   idiomaPlantilla: string;
   resenaAutomatica: boolean;
   recallAuto: boolean;
+  noShowRecovery: boolean;
   digestDiario: boolean;
 }) {
   const router = useRouter();
@@ -35,6 +37,7 @@ export function NotificacionesForm({
   const [idioma, setIdioma] = useState(idiomaPlantilla);
   const [resena, setResena] = useState(resenaAutomatica);
   const [recall, setRecall] = useState(recallAuto);
+  const [noShow, setNoShow] = useState(noShowRecovery);
   const [digest, setDigest] = useState(digestDiario);
   const [saving, setSaving] = useState(false);
   const dirty =
@@ -44,6 +47,7 @@ export function NotificacionesForm({
     idioma !== idiomaPlantilla ||
     resena !== resenaAutomatica ||
     recall !== recallAuto ||
+    noShow !== noShowRecovery ||
     digest !== digestDiario;
 
   async function guardar() {
@@ -59,6 +63,7 @@ export function NotificacionesForm({
           idiomaPlantilla: idioma,
           resenaAutomatica: resena,
           recallAuto: recall,
+          noShowRecovery: noShow,
           digestDiario: digest,
         }),
       });
@@ -112,6 +117,14 @@ export function NotificacionesForm({
           detail="Cada mes se contacta a pacientes sin visitas en 6+ meses (máximo 1 envío cada 60 días)."
           checked={recall}
           onChange={setRecall}
+          disponible={emailOperativo}
+        />
+        <Toggle
+          icon={UserX}
+          label="Recuperación de no-show"
+          detail="Al marcar una cita como no asistida, el paciente recibe un enlace para re-agendar en línea."
+          checked={noShow}
+          onChange={setNoShow}
           disponible={emailOperativo}
         />
         <Toggle

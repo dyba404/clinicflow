@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { getDb, appointments } from "@clinicflow/db";
+import { getDb, appointments, appointmentStatusEvents } from "@clinicflow/db";
 import { canTransition, assertTransition } from "@clinicflow/core";
 import type { AppointmentStatus, Permission } from "@clinicflow/core";
 import { guardStaff, guardError } from "@/lib/auth";
@@ -8,6 +8,7 @@ import { logAuditSesion } from "@/lib/audit";
 import { consumirMateriales } from "@/lib/inventario";
 import { ofrecerHuecoAutomatico } from "@/lib/hueco";
 import { resenaAutomaticaSiAplica } from "@/lib/reviews";
+import { recuperacionNoShow } from "@/lib/no-show";
 
 const VALID: AppointmentStatus[] = [
   "solicitada",
@@ -83,6 +84,14 @@ export async function POST(
     .set({ estado, updatedAt: new Date() })
     .where(eq(appointments.id, id));
 
+  await db.insert(appointmentStatusEvents).values({
+    tenantId: g.team.id,
+    appointmentId: id,
+    estadoFrom: appt.estado,
+    estadoTo: estado,
+    changedBy: g.user.id,
+  });
+
   void logAuditSesion({
     tenantId: g.team.id,
     accion: "cita.estado",
@@ -114,6 +123,17 @@ export async function POST(
       fecha: appt.fecha,
       horaIni: appt.horaIni,
       via: "consola",
+    }).catch(() => {});
+  }
+
+  if (estado === "no_show") {
+    void recuperacionNoShow({
+      tenantId: g.team.id,
+      tenantNombre: g.team.name,
+      tenantSlug: g.team.slug,
+      citaId: id,
+      patientId: appt.patientId,
+      enviadoPor: g.user.id,
     }).catch(() => {});
   }
 

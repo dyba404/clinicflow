@@ -5,6 +5,7 @@ import {
   getDb,
   appointments,
   blockedSlots,
+  holidays,
   memberships,
   services,
   staffSchedules,
@@ -138,6 +139,15 @@ export async function computeSlots(
     .limit(1);
   const service = svcRows[0];
   if (!service) return null;
+
+  const [feriado] = await db
+    .select({ id: holidays.id })
+    .from(holidays)
+    .where(and(eq(holidays.tenantId, tenantId), eq(holidays.fecha, opts.date)))
+    .limit(1);
+  if (feriado) {
+    return { date: opts.date, slots: [] };
+  }
 
   const doctorWhere = opts.doctorMembershipId
     ? eq(memberships.id, opts.doctorMembershipId)

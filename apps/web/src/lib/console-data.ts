@@ -833,3 +833,95 @@ export async function primerosPasos(teamId: string): Promise<PrimerPaso[]> {
     },
   ];
 }
+
+// ---------------------------------------------------------------------------
+// Producción por doctor (OLA 6)
+// ---------------------------------------------------------------------------
+
+export async function produccionPorDoctor(
+  teamId: string,
+  desde: string,
+  hasta: string,
+) {
+  const db = getDb();
+  const filas = await db
+    .select({
+      doctorId: appointments.doctorId,
+      doctorNombre: users.name,
+      atendidas: sql<number>`count(distinct ${appointments.id}) filter (where ${appointments.estado} = 'atendida')`.mapWith(Number),
+      noShows: sql<number>`count(distinct ${appointments.id}) filter (where ${appointments.estado} = 'no_show')`.mapWith(Number),
+      totalCitas: sql<number>`count(distinct ${appointments.id})`.mapWith(Number),
+      ventas: sql<number>`coalesce(sum(${payments.monto}::numeric), 0)`.mapWith(Number),
+      pagos: sql<number>`count(distinct ${payments.id})`.mapWith(Number),
+    })
+    .from(appointments)
+    .leftJoin(memberships, eq(appointments.doctorId, memberships.id))
+    .leftJoin(users, eq(memberships.userId, users.id))
+    .leftJoin(payments, eq(payments.appointmentId, appointments.id))
+    .where(
+      and(
+        eq(appointments.tenantId, teamId),
+        gte(appointments.fecha, desde),
+        lte(appointments.fecha, hasta),
+      ),
+    )
+    .groupBy(appointments.doctorId, users.name)
+    .orderBy(desc(sql`coalesce(sum(${payments.monto}::numeric), 0)`));
+  return filas.map((f) => ({
+    ...f,
+    doctorNombre: f.doctorNombre ?? "Sin doctor asignado",
+    ticket: f.pagos > 0 ? Math.round((f.ventas / f.pagos) * 100) / 100 : 0,
+  }));
+}
+
+export async function produccionDoctorDetalle(
+  teamId: string,
+  doctorId: string,
+  desde: string,
+  hasta: string,
+) {
+  const db = getDb();
+  const citas = await db
+    .select({
+      id: appointments.id,
+      fecha: appointments.fecha,
+      horaIni: appointments.horaIni,
+      estado: appointments.estado,
+      monto: appointments.monto,
+      servicio: services.nombre,
+      paciente: patients.nombre,
+    })
+    .from(appointments)
+    .innerJoin(services, eq(appointments.serviceId, services.id))
+    .leftJoin(patients, eq(appointments.patientId, patients.id))
+    .where(
+      and(
+        eq(appointments.tenantId, teamId),
+        eq(appointments.doctorId, doctorId),
+        gte(appointments.fecha, desde),
+        lte(appointments.fecha, hasta),
+      ),
+    )
+    .orderBy(desc(appointments.fecha), desc(appointments.horaIni))
+    .limit(200);
+  const pagos = await db
+    .select({
+      id: payments.id,
+      monto: payments.monto,
+      metodo: payments.metodo,
+      createdAt: payments.createdAt,
+    })
+    .from(payments)
+    .innerJoin(appointments, eq(payments.appointmentId, appointments.id))
+    .where(
+      and(
+        eq(appointments.tenantId, teamId),
+        eq(appointments.doctorId, doctorId),
+        gte(appointments.fecha, desde),
+        lte(appointments.fecha, hasta),
+      ),
+    )
+    .orderBy(desc(payments.createdAt))
+    .limit(200);
+  return { citas, pagos };
+}

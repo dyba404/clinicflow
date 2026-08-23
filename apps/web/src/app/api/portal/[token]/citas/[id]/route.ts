@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 import { getDb, appointments, services } from "@clinicflow/db";
-import { resolvePortalToken } from "@/lib/magic-link";
+import { resolvePortalAccess } from "@/lib/portal-access";
 import { computeSlots } from "@/lib/db";
 import { rateLimit, ipReq } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     );
   }
 
-  const r = await resolvePortalToken(token);
+  const r = await resolvePortalAccess(token);
   if (!r.ok) return NextResponse.json({ error: r.reason }, { status: 404 });
   const { ctx } = r;
 

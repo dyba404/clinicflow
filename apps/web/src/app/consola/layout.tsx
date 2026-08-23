@@ -107,6 +107,9 @@ function buildNav({
           badge: solicitudes,
         }
       : null,
+    can("appointments.create")
+      ? { href: "/consola/series", label: "Series", icon: "solicitudes" }
+      : null,
     can("patients.manage")
       ? { href: "/consola/pacientes", label: "Pacientes", icon: "pacientes" }
       : null,
@@ -146,8 +149,10 @@ function buildNav({
       ? { href: "/consola/caja/comprobantes", label: "Comprobantes" }
       : null,
     can("reports.view_all") ? { href: "/consola/dashboard", label: "Ingresos" } : null,
+    can("reports.view_all") ? { href: "/consola/produccion", label: "Producción" } : null,
     can("reports.view_all") ? { href: "/consola/direccion", label: "Dirección" } : null,
     can("quotes.manage") ? { href: "/consola/presupuestos", label: "Presupuestos" } : null,
+    can("quotes.manage") ? { href: "/consola/planes", label: "Planes de tratamiento" } : null,
     can("commissions.manage") ? { href: "/consola/comisiones", label: "Comisiones" } : null,
     can("reminders.send") ? { href: "/consola/recall", label: "Recall" } : null,
     can("campaigns.manage") ? { href: "/consola/campanas", label: "Campañas" } : null,
@@ -157,6 +162,7 @@ function buildNav({
   const configHijos = [
     can("services.manage") ? { href: "/consola/config/servicios", label: "Servicios" } : null,
     can("staff.manage") ? { href: "/consola/personal", label: "Personal" } : null,
+    can("services.manage") ? { href: "/consola/config/feriados", label: "Feriados" } : null,
     can("services.manage")
       ? { href: "/consola/config/notificaciones", label: "Notificaciones" }
       : null,
@@ -171,6 +177,7 @@ function buildNav({
     can("reports.view_all") ? { href: "/consola/auditoria/fichas", label: "Historia vista por" } : null,
     can("reports.view_all") ? { href: "/consola/arco", label: "ARCO (Ley 29733)" } : null,
     can("services.manage") ? { href: "/consola/config/legal", label: "Cumplimiento legal" } : null,
+    can("records.edit") ? { href: "/consola/consentimientos", label: "Consentimientos" } : null,
   ].filter((i): i is NonNullable<typeof i> => i !== null);
 
   const colapsable = (hijos: { href: string; label: string }[], icon: string, label: string) => {

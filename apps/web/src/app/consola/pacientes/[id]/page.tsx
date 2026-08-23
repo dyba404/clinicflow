@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarClock, Camera, CreditCard, FileText, FlaskRound, Mail, Phone, Receipt, Users } from "lucide-react";
+import { CalendarClock, Camera, ClipboardList, CreditCard, FileSignature, FileText, FlaskRound, Mail, Phone, Receipt, Users } from "lucide-react";
 import { ShieldCheck } from "lucide-react";
 import { hasPermission } from "@clinicflow/core";
 import { and, asc, desc, eq, isNotNull } from "drizzle-orm";
@@ -19,6 +19,9 @@ import { EditDialog } from "./edit-dialog";
 import { LaboratorioCard } from "./laboratorio-card";
 import { FotosCard } from "./fotos-card";
 import { CoberturasCard } from "./coberturas-card";
+import { ConsentV2Card } from "./consent-v2-card";
+import { PlanesCard } from "./planes-card";
+import { ActivarPortalButton } from "./activar-portal-button";
 import {
   getDefaultTeam,
   fichaPaciente,
@@ -200,6 +203,9 @@ export default async function FichaPacientePage({
                     }}
                   />
                 ) : null}
+                {canEdit && !paciente.passwordHash ? (
+                  <ActivarPortalButton patientId={paciente.id} />
+                ) : null}
               </div>
               <div className="mt-3 grid gap-1.5 text-sm text-muted-foreground sm:grid-cols-3">
                 <span className="flex items-center gap-1.5">
@@ -369,6 +375,30 @@ export default async function FichaPacientePage({
               aseguradoras={aseguradoraRows}
               canEdit={canEdit}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-5 pb-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <FileSignature className="size-4 text-primary" />
+              Consentimientos informados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
+            <ConsentV2Card patientId={paciente.id} canEdit={canEdit} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-5 pb-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <ClipboardList className="size-4 text-primary" />
+              Planes de tratamiento
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-5 pt-0">
+            <PlanesCard patientId={paciente.id} />
           </CardContent>
         </Card>
       </div>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { and, asc, eq } from "drizzle-orm";
 import { getDb, orders, orderResults, users } from "@clinicflow/db";
-import { resolvePortalToken } from "@/lib/magic-link";
+import { resolvePortalAccess } from "@/lib/portal-access";
 import { rateLimit, ipReq } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -129,7 +129,7 @@ export async function GET(
     );
   }
 
-  const r = await resolvePortalToken(token);
+  const r = await resolvePortalAccess(token);
   if (!r.ok) return NextResponse.json({ error: r.reason }, { status: 404 });
   const { ctx } = r;
 

@@ -71,6 +71,7 @@ export default async function NotificacionesConfigPage() {
         idiomaPlantilla={settings?.idiomaPlantilla ?? "es"}
         resenaAutomatica={settings?.resenaAutomatica ?? false}
         recallAuto={settings?.recallAuto ?? false}
+        noShowRecovery={settings?.noShowRecovery ?? true}
         digestDiario={settings?.digestDiario ?? true}
       />
 

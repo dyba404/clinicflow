@@ -2,8 +2,14 @@ import { expect, test } from "@playwright/test";
 import { USUARIOS, loginPorApi } from "./auth";
 
 function mananaLima(): string {
-  const d = new Date(Date.now() + 24 * 3600 * 1000);
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(d);
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" });
+  const dowFmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", weekday: "short" });
+  let d = new Date(Date.now() + 24 * 3600 * 1000);
+  // La clínica demo no atiende domingos; salta al lunes si cae en domingo.
+  while (dowFmt.format(d) === "Sun") {
+    d = new Date(d.getTime() + 24 * 3600 * 1000);
+  }
+  return fmt.format(d);
 }
 
 // Flujo global completo (OLA 4): reserva → consulta → hospitalización →

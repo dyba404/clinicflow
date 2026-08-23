@@ -11,6 +11,7 @@ import { getSession } from "@/lib/auth";
 import { gatePlan } from "@/lib/plans";
 import { PlanGate } from "@/components/console/plan-gate";
 import { margenesPorServicio } from "@/lib/inventario";
+import { metricaRecuperacionNoShow } from "@/lib/no-show";
 import {
   getDefaultTeam,
   ingresosDiarios,
@@ -79,13 +80,18 @@ export default async function IngresosPage({
   const fechaHasta = lima.format(ahora);
   const fechaDesde = lima.format(new Date(ahora.getTime() - dias * 86_400_000));
 
-  const [serie, top, overview, porMetodo, stats, margenes] = await Promise.all([
+  const [serie, top, overview, porMetodo, stats, margenes, recuperacion] = await Promise.all([
     ingresosDiarios(team.id, dias),
     topServicios(team.id, 5),
     teamOverview(team.id),
     ingresosPorMetodo(team.id, fechaDesde),
     statsRango(team.id, fechaDesde, fechaHasta),
     margenesPorServicio(team.id).catch(() => []),
+    metricaRecuperacionNoShow(team.id, fechaDesde, fechaHasta).catch(() => ({
+      noShows: 0,
+      recuperadas: 0,
+      tasa: 0,
+    })),
   ]);
 
   const totalRango = serie.reduce((acc, d) => acc + d.total, 0);
@@ -114,7 +120,11 @@ export default async function IngresosPage({
         <Stat
           label="No-shows"
           value={String(stats.noShows)}
-          sub={`de ${stats.total} citas en el rango`}
+          sub={
+            recuperacion.noShows > 0
+              ? `${recuperacion.recuperadas} recuperadas (${recuperacion.tasa} %)`
+              : `de ${stats.total} citas en el rango`
+          }
         />
         <Stat
           label="Ocupación %"

@@ -4,13 +4,17 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { BedDouble } from "lucide-react";
 import { hasPermission } from "@clinicflow/core";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { and, desc, eq, isNull, ne } from "drizzle-orm";
 import {
   getDb,
+  admissionDeposits,
+  admissionHandovers,
   admissions,
   bedAssignments,
   beds,
   evolutions,
+  invoices,
   memberships,
   patients,
   users,
@@ -20,6 +24,8 @@ import { PageHeader } from "@/components/console/page-header";
 import { EmptyState } from "@/components/console/empty-state";
 import { getSession } from "@/lib/auth";
 import { AdmisionDetalle } from "./admision-detalle";
+import { DepositosCard } from "./depositos-card";
+import { HandoverCard } from "./handover-card";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +112,78 @@ export default async function AdmisionPage({
     .where(eq(evolutions.admissionId, id))
     .orderBy(desc(evolutions.fecha), desc(evolutions.createdAt));
 
+  const filasFacturas = await db
+    .select({
+      id: invoices.id,
+      total: invoices.total,
+      estado: invoices.estado,
+    })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.tenantId, session.teamId),
+        eq(invoices.admissionId, id),
+        ne(invoices.estado, "anulada"),
+      ),
+    );
+
+  const filasDepositos = await db
+    .select({
+      id: admissionDeposits.id,
+      monto: admissionDeposits.monto,
+      metodo: admissionDeposits.metodo,
+      referencia: admissionDeposits.referencia,
+      nota: admissionDeposits.nota,
+      anuladoAt: admissionDeposits.anuladoAt,
+      nombreRegistro: users.name,
+      createdAt: admissionDeposits.createdAt,
+    })
+    .from(admissionDeposits)
+    .leftJoin(users, eq(admissionDeposits.registradoPor, users.id))
+    .where(
+      and(eq(admissionDeposits.tenantId, session.teamId), eq(admissionDeposits.admissionId, id)),
+    )
+    .orderBy(desc(admissionDeposits.createdAt));
+
+  const entregaU = alias(users, "handover_entrega_u");
+  const recibeU = alias(users, "handover_recibe_u");
+  const filasHandovers = await db
+    .select({
+      id: admissionHandovers.id,
+      turno: admissionHandovers.turno,
+      resumen: admissionHandovers.resumen,
+      pendientes: admissionHandovers.pendientes,
+      nombreEntrega: entregaU.name,
+      nombreRecibe: recibeU.name,
+      createdAt: admissionHandovers.createdAt,
+    })
+    .from(admissionHandovers)
+    .leftJoin(entregaU, eq(admissionHandovers.entregaUserId, entregaU.id))
+    .leftJoin(recibeU, eq(admissionHandovers.recibeUserId, recibeU.id))
+    .where(
+      and(
+        eq(admissionHandovers.tenantId, session.teamId),
+        eq(admissionHandovers.admissionId, id),
+      ),
+    )
+    .orderBy(desc(admissionHandovers.createdAt));
+
+  const filasMiembros = await db
+    .select({ userId: users.id, name: users.name })
+    .from(memberships)
+    .innerJoin(users, eq(memberships.userId, users.id))
+    .where(and(eq(memberships.teamId, session.teamId), eq(memberships.active, true)))
+    .orderBy(users.name);
+
+  const redondear = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+  const facturado = redondear(filasFacturas.reduce((acc, f) => acc + Number(f.total), 0));
+  const depositado = redondear(
+    filasDepositos
+      .filter((d) => !d.anuladoAt)
+      .reduce((acc, d) => acc + Number(d.monto), 0),
+  );
+  const saldo = redondear(facturado - depositado);
+
   const detalle = {
     id: admision.id,
     nombrePaciente: admision.nombrePaciente,
@@ -146,6 +224,45 @@ export default async function AdmisionPage({
           nombreDoctor: e.nombreDoctor ?? null,
         }))}
       />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DepositosCard
+          admissionId={admision.id}
+          activa={admision.estado === "activa"}
+          depositos={filasDepositos.map((d) => ({
+            id: d.id,
+            montoNum: Number(d.monto),
+            metodo: d.metodo,
+            referencia: d.referencia,
+            nota: d.nota,
+            anuladoAt: d.anuladoAt ? format(d.anuladoAt, "d MMM yyyy, HH:mm", { locale: es }) : null,
+            nombreRegistro: d.nombreRegistro,
+            createdAt: format(d.createdAt, "d MMM yyyy, HH:mm", { locale: es }),
+          }))}
+          facturas={filasFacturas.map((f) => ({
+            id: f.id,
+            totalNum: Number(f.total),
+            estado: f.estado,
+          }))}
+          facturado={facturado}
+          depositado={depositado}
+          saldo={saldo}
+        />
+        <HandoverCard
+          admissionId={admision.id}
+          activa={admision.estado === "activa"}
+          handovers={filasHandovers.map((h) => ({
+            id: h.id,
+            turno: h.turno,
+            resumen: h.resumen,
+            pendientes: h.pendientes,
+            nombreEntrega: h.nombreEntrega,
+            nombreRecibe: h.nombreRecibe,
+            createdAt: format(h.createdAt, "d MMM yyyy, HH:mm", { locale: es }),
+          }))}
+          miembros={filasMiembros}
+        />
+      </div>
     </div>
   );
 }

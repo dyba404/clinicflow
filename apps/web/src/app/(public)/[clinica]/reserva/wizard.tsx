@@ -41,6 +41,8 @@ interface Props {
   clinicaName: string;
   servicios: ServicioItem[];
   doctores: DoctorItem[];
+  prefillNombre?: string;
+  prefillCelular?: string;
 }
 
 const PASOS = ["Servicio", "Horario", "Datos"];
@@ -147,7 +149,14 @@ function Pill({
   );
 }
 
-export function WizardReserva({ clinicaSlug, clinicaName, servicios, doctores }: Props) {
+export function WizardReserva({
+  clinicaSlug,
+  clinicaName,
+  servicios,
+  doctores,
+  prefillNombre,
+  prefillCelular,
+}: Props) {
   const [paso, setPaso] = useState(1);
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [fecha, setFecha] = useState(fechaISO(1));
@@ -155,8 +164,8 @@ export function WizardReserva({ clinicaSlug, clinicaName, servicios, doctores }:
   const [slots, setSlots] = useState<Array<{ startTime: string; endTime: string }> | null>(null);
   const [slotSel, setSlotSel] = useState<{ startTime: string; endTime: string } | null>(null);
   const [cargandoSlots, setCargandoSlots] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [celular, setCelular] = useState("");
+  const [nombre, setNombre] = useState(prefillNombre ?? "");
+  const [celular, setCelular] = useState(prefillCelular ?? "");
   const [email, setEmail] = useState("");
   const [consentimiento, setConsentimiento] = useState(false);
   const [enviando, setEnviando] = useState(false);

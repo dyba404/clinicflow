@@ -11,6 +11,7 @@ import {
 import { isSlotStillFree } from "@/lib/db";
 import { rateLimit, ipReq } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
+import { elegirDoctorRoundRobin, roundRobinActivo } from "@/lib/round-robin";
 
 export interface RequestPayload {
   serviceId: string;
@@ -111,6 +112,10 @@ export async function POST(
   }
 
   let appt;
+  let doctorAsignado: string | null = doctorMembershipId || null;
+  if (!doctorAsignado && (await roundRobinActivo(team.id))) {
+    doctorAsignado = await elegirDoctorRoundRobin({ tenantId: team.id, fecha: date });
+  }
   try {
     [appt] = await db
       .insert(appointments)
@@ -118,7 +123,7 @@ export async function POST(
         tenantId: team.id,
         serviceId: service.id,
         patientId: patient.id,
-        doctorId: doctorMembershipId || null,
+        doctorId: doctorAsignado,
         preferredDoctorId: doctorMembershipId || null,
         fecha: date,
         horaIni: startTime,

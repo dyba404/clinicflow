@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/console/page-header";
 import { EmptyState } from "@/components/console/empty-state";
 import { InvitarForm } from "@/app/consola/personal/invitar-form";
 import { MiembroTurnos } from "@/app/consola/personal/miembro-turnos";
+import { RoundRobinToggle } from "@/app/consola/personal/round-robin-toggle";
 import { getDefaultTeam, staffList, turnosPorMiembro } from "@/lib/console-data";
 import { getSession } from "@/lib/auth";
 import type { StaffRole } from "@clinicflow/core";
@@ -114,6 +115,12 @@ export default async function PersonalPage() {
       <Card>
         <CardContent className="p-5">
           <InvitarForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-5">
+          <RoundRobinToggle activo={team.roundRobin} />
         </CardContent>
       </Card>
 

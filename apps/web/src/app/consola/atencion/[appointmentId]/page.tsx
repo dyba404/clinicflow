@@ -111,7 +111,9 @@ export default async function AtencionPage({
     evaluacion: string | null;
     plan: string | null;
     constantes: Record<string, string> | null;
-    diagnosticos: Array<{ codigo: string; descripcion: string | null; esPrincipal: boolean }>;
+    publicadoAt: string | null;
+    publicarNota: boolean;
+    diagnosticos: Array<{ codigo: string; descripcion: string | null; esPrincipal: boolean; ocultoPortal: boolean }>;
     recetas: Array<{
       id: string;
       medicamento: string;
@@ -129,6 +131,7 @@ export default async function AtencionPage({
           codigo: consultDiagnoses.cie10Codigo,
           descripcion: cie10.descripcion,
           esPrincipal: consultDiagnoses.esPrincipal,
+          ocultoPortal: consultDiagnoses.ocultoPortal,
         })
         .from(consultDiagnoses)
         .leftJoin(cie10, eq(consultDiagnoses.cie10Codigo, cie10.codigo))
@@ -153,6 +156,8 @@ export default async function AtencionPage({
       evaluacion: consulta.evaluacion,
       plan: consulta.plan,
       constantes: (consulta.constantes ?? null) as Record<string, string> | null,
+      publicadoAt: consulta.publicadoAt ? consulta.publicadoAt.toISOString() : null,
+      publicarNota: consulta.publicarNota,
       diagnosticos,
       recetas,
     };

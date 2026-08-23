@@ -171,6 +171,26 @@ export function plantillaRecall(opts: {
   };
 }
 
+export function plantillaNoShowRecuperacion(opts: {
+  clinicaNombre: string;
+  pacienteNombre: string;
+  reservaUrl: string;
+}): PlantillaEmail {
+  const primer = opts.pacienteNombre.split(" ")[0] ?? opts.pacienteNombre;
+  const cuerpo = `Hola ${primer}, notamos que no pudiste asistir a tu última cita en ${opts.clinicaNombre}. No te preocupes: puedes reservar un nuevo horario en línea cuando te acomode.`;
+  const tpl = layout(
+    opts.clinicaNombre,
+    `Te extrañamos, ${primer}`,
+    `<p>${cuerpo}</p>${boton(opts.reservaUrl, "Re-agendar mi cita")}`,
+    `${cuerpo}\n\nRe-agenda tu cita: ${opts.reservaUrl}`,
+  );
+  return {
+    asunto: `${opts.clinicaNombre} - re-agenda tu cita`,
+    html: tpl.html,
+    texto: tpl.text,
+  };
+}
+
 export function plantillaRecordatorio24h(opts: { cita: CitaDatos }): PlantillaEmail {
   const { cita } = opts;
   const bodyHtml = `
@@ -309,6 +329,83 @@ export async function enviarEmailPasswordReset(opts: {
   const r = await sendMail({
     to: opts.to,
     subject: "Restablece tu contraseña — Clinicflow",
+    html: tpl.html,
+    text: tpl.text,
+  });
+  return r.ok ? { ok: true } : { ok: false, reason: r.reason };
+}
+
+export async function enviarEmailActivacionPortal(opts: {
+  to: string;
+  nombre: string;
+  clinicaNombre: string;
+  activacionUrl: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const bodyHtml = `
+    <p>Hola ${opts.nombre}, ${opts.clinicaNombre} activó tu portal de paciente en Clinicflow.</p>
+    ${boton(opts.activacionUrl, "Crear mi contraseña")}
+    <p>El enlace vence en 1 hora y es de un solo uso. Si no esperabas este correo, ignóralo.</p>`;
+  const tpl = layout(
+    opts.clinicaNombre,
+    "Activa tu portal de paciente",
+    bodyHtml,
+    `Hola ${opts.nombre},\n\n${opts.clinicaNombre} activó tu portal de paciente.\n\nCrea tu contraseña aquí: ${opts.activacionUrl}\n\nEl enlace vence en 1 hora.`,
+  );
+  const r = await sendMail({
+    to: opts.to,
+    subject: `Activa tu portal de paciente — ${opts.clinicaNombre}`,
+    html: tpl.html,
+    text: tpl.text,
+  });
+  return r.ok ? { ok: true } : { ok: false, reason: r.reason };
+}
+
+export async function enviarEmailOtp(opts: {
+  to: string;
+  nombre: string;
+  clinicaNombre: string;
+  codigo: string;
+  proposito: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const titulo = opts.proposito === "recuperar" ? "Tu código de recuperación" : "Tu código de verificación";
+  const bodyHtml = `
+    <p>Hola ${opts.nombre}, este es tu código de verificación de ${opts.clinicaNombre}:</p>
+    <p style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;background:#f3f4f6;border-radius:8px;padding:16px;margin:16px 0;">${opts.codigo}</p>
+    <p>El código vence en 10 minutos. Si no lo solicitaste, ignora este correo y avísanos.</p>`;
+  const tpl = layout(
+    opts.clinicaNombre,
+    titulo,
+    bodyHtml,
+    `Hola ${opts.nombre},\n\nTu código de verificación es: ${opts.codigo}\n\nVence en 10 minutos. Si no lo solicitaste, ignora este correo.`,
+  );
+  const r = await sendMail({
+    to: opts.to,
+    subject: `${opts.codigo} — tu código de verificación | ${opts.clinicaNombre}`,
+    html: tpl.html,
+    text: tpl.text,
+  });
+  return r.ok ? { ok: true } : { ok: false, reason: r.reason };
+}
+
+export async function enviarEmailConsultaPublicada(opts: {
+  to: string;
+  nombre: string;
+  clinicaNombre: string;
+  portalUrl: string;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const bodyHtml = `
+    <p>Hola ${opts.nombre}, ${opts.clinicaNombre} publicó el resumen de tu última consulta en tu portal de paciente.</p>
+    ${boton(opts.portalUrl, "Ver mi consulta")}
+    <p>El enlace es personal, no lo compartas. Si tienes dudas sobre el contenido, comunícate con la clínica.</p>`;
+  const tpl = layout(
+    opts.clinicaNombre,
+    "Tu resumen de consulta está disponible",
+    bodyHtml,
+    `Hola ${opts.nombre},\n\n${opts.clinicaNombre} publicó el resumen de tu última consulta.\n\nMíralo aquí: ${opts.portalUrl}\n\nEl enlace es personal, no lo compartas.`,
+  );
+  const r = await sendMail({
+    to: opts.to,
+    subject: `Tu resumen de consulta está disponible — ${opts.clinicaNombre}`,
     html: tpl.html,
     text: tpl.text,
   });

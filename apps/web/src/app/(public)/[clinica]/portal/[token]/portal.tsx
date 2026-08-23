@@ -9,11 +9,14 @@ import {
   Download,
   FileText,
   FlaskConical,
+  HeartPulse,
   Loader2,
+  Pill,
   QrCode,
   Receipt,
   ShieldCheck,
   Stethoscope,
+  Users,
   Wallet,
   XCircle,
 } from "lucide-react";
@@ -31,6 +34,8 @@ interface ProximaCita {
   doctor: string | null;
   serviceId: string | null;
   doctorId: string | null;
+  instruccionesPre: string | null;
+  instruccionesPost: string | null;
   puedeConfirmar: boolean;
 }
 
@@ -91,9 +96,58 @@ interface Resultado {
   parametros: ResultadoParametro[];
 }
 
+interface ConsultaDiagnostico {
+  codigo: string;
+  descripcion: string;
+  esPrincipal: boolean;
+}
+
+interface ConsultaReceta {
+  medicamento: string;
+  dosis: string | null;
+  frecuencia: string | null;
+  duracionDias: number | null;
+  indicaciones: string | null;
+}
+
+interface Consulta {
+  id: string;
+  fecha: string | null;
+  doctor: string | null;
+  motivo: string | null;
+  plan: string | null;
+  notaCompleta: { subjetivo: string | null; objetivo: string | null; evaluacion: string | null } | null;
+  diagnosticos: ConsultaDiagnostico[];
+  recetas: ConsultaReceta[];
+}
+
+interface Salud {
+  alergias: string | null;
+  antecedentes: string | null;
+  medicacion: string | null;
+  gestacion: boolean;
+}
+
+interface CitaACargo {
+  id: string;
+  fecha: string;
+  horaIni: string;
+  horaFin: string;
+  estado: string;
+  servicio: string | null;
+  doctor: string | null;
+}
+
+interface PacienteACargo {
+  id: string;
+  nombre: string;
+  proximasCitas: CitaACargo[];
+}
+
 interface PortalData {
   clinica: { nombre: string; slug: string };
-  paciente: { nombre: string };
+  paciente: { nombre: string; celular: string | null; salud: Salud | null };
+  aCargo: PacienteACargo[];
   proximasCitas: ProximaCita[];
   historial: CitaHistorial[];
   cuotasPendientes: Cuota[];
@@ -101,6 +155,7 @@ interface PortalData {
   presupuestos: Presupuesto[];
   consentimientos: Consentimiento[];
   resultados: Resultado[];
+  consultas: Consulta[];
 }
 
 interface PagoQr {
@@ -132,7 +187,7 @@ function formatFechaLarga(iso: string): string {
   }).format(d);
 }
 
-export function PortalPaciente({ token }: { token: string }) {
+export function PortalPaciente({ token, conSesion = false }: { token: string; conSesion?: boolean }) {
   const [data, setData] = useState<PortalData | null>(null);
   const [estadoError, setEstadoError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -246,6 +301,14 @@ export function PortalPaciente({ token }: { token: string }) {
     }
   }
 
+  async function cerrarSesion() {
+    try {
+      await fetch("/api/portal/auth/logout", { method: "POST" });
+    } finally {
+      window.location.href = `/${data?.clinica.slug ?? ""}/portal`;
+    }
+  }
+
   if (cargando) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
@@ -267,6 +330,15 @@ export function PortalPaciente({ token }: { token: string }) {
           </div>
       </div>
     </main>
+  );
+}
+
+function SaludFila({ etiqueta, valor }: { etiqueta: string; valor: string | null }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-2 last:border-none last:pb-0">
+      <span className="shrink-0 text-xs font-medium text-muted-foreground">{etiqueta}</span>
+      <span className="whitespace-pre-line text-right text-sm text-foreground">{valor || "—"}</span>
+    </div>
   );
 }
 
@@ -438,7 +510,28 @@ function ProgramarCita({
               Hola, <span className="font-medium text-foreground">{paciente.nombre}</span>
             </p>
           </div>
+          {conSesion && (
+            <button
+              type="button"
+              onClick={() => void cerrarSesion()}
+              className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Cerrar sesión
+            </button>
+          )}
         </header>
+
+        <a
+          href={`/${clinica.slug}/reserva${
+            data.paciente.celular
+              ? `?nombre=${encodeURIComponent(paciente.nombre)}&celular=${encodeURIComponent(data.paciente.celular)}`
+              : ""
+          }`}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <CalendarIcon className="size-4" />
+          Agendar nueva cita
+        </a>
 
         {mensaje && (
           <div className="mt-6 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
@@ -460,8 +553,7 @@ function ProgramarCita({
             <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
               <CalendarCheck2 className="size-5 text-primary" />
               Tus próximas citas
-            </h2>
-            <div className="mt-3 space-y-3">
+            </h2>            <div className="mt-3 space-y-3">
               {data.proximasCitas.map((c) => (
                 <div key={c.id} className="rounded-xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -487,6 +579,18 @@ function ProgramarCita({
                       </span>
                     </div>
                   </div>
+                  {c.instruccionesPre && (
+                    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                      <p className="text-xs font-semibold text-amber-800">Antes de tu cita</p>
+                      <p className="mt-1 whitespace-pre-line text-xs text-amber-700">{c.instruccionesPre}</p>
+                    </div>
+                  )}
+                  {c.instruccionesPost && (
+                    <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
+                      <p className="text-xs font-semibold text-sky-800">Después de tu cita</p>
+                      <p className="mt-1 whitespace-pre-line text-xs text-sky-700">{c.instruccionesPost}</p>
+                    </div>
+                  )}
                   {c.puedeConfirmar && (
                     <Button
                       type="button"
@@ -497,6 +601,42 @@ function ProgramarCita({
                     </Button>
                   )}
                   <ProgramarCita cita={c} slug={clinica.slug} onReprogramar={reprogramarCita} onCancelar={cancelarCita} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {data.aCargo.length > 0 && (
+          <section className="mt-8">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <Users className="size-5 text-primary" />
+              Pacientes a tu cargo
+            </h2>
+            <div className="mt-3 space-y-3">
+              {data.aCargo.map((p) => (
+                <div key={p.id} className="rounded-xl border border-border bg-card p-4">
+                  <p className="font-medium text-foreground">{p.nombre}</p>
+                  {p.proximasCitas.length === 0 ? (
+                    <p className="mt-1 text-xs text-muted-foreground">Sin citas próximas.</p>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      {p.proximasCitas.map((c) => (
+                        <div key={c.id} className="rounded-lg bg-muted/40 p-3 text-sm">
+                          <p className="font-medium text-foreground">{c.servicio ?? "Servicio"}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+                            {formatFechaLarga(c.fecha)} · {c.horaIni}–{c.horaFin}
+                          </p>
+                          {c.doctor && (
+                            <p className="mt-0.5 text-xs text-muted-foreground">{c.doctor}</p>
+                          )}
+                          <span className="mt-1 inline-block rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
+                            {ESTADO_LABEL[c.estado] ?? c.estado}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -690,6 +830,112 @@ function ProgramarCita({
                   </div>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {data.consultas.length > 0 && (
+          <section className="mt-8">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <HeartPulse className="size-5 text-primary" />
+              Tus consultas
+            </h2>
+            <div className="mt-3 space-y-3">
+              {data.consultas.map((c) => (
+                <div key={c.id} className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">{c.motivo ?? "Consulta"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.fecha ? new Date(c.fecha).toLocaleDateString("es-PE") : ""}
+                        {c.doctor ? ` · ${c.doctor}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  {c.diagnosticos.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground">Diagnósticos</p>
+                      {c.diagnosticos.map((d) => (
+                        <div key={d.codigo} className="flex items-center justify-between gap-2 text-sm">
+                          <span className="text-foreground">{d.descripcion}</span>
+                          <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
+                            {d.codigo}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {c.plan && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-muted-foreground">Plan</p>
+                      <p className="mt-1 whitespace-pre-line text-sm text-foreground">{c.plan}</p>
+                    </div>
+                  )}
+                  {c.notaCompleta && (
+                    <div className="mt-3 space-y-2 rounded-lg bg-muted/40 p-3">
+                      {c.notaCompleta.subjetivo && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground">Subjetivo</p>
+                          <p className="mt-0.5 whitespace-pre-line text-sm text-foreground">{c.notaCompleta.subjetivo}</p>
+                        </div>
+                      )}
+                      {c.notaCompleta.objetivo && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground">Objetivo</p>
+                          <p className="mt-0.5 whitespace-pre-line text-sm text-foreground">{c.notaCompleta.objetivo}</p>
+                        </div>
+                      )}
+                      {c.notaCompleta.evaluacion && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground">Evaluación</p>
+                          <p className="mt-0.5 whitespace-pre-line text-sm text-foreground">{c.notaCompleta.evaluacion}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {c.recetas.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                        <Pill className="size-3.5" />
+                        Recetas
+                      </p>
+                      {c.recetas.map((r, i) => (
+                        <div key={i} className="rounded-lg border border-border p-3">
+                          <p className="text-sm font-medium text-foreground">{r.medicamento}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {[r.dosis, r.frecuencia, r.duracionDias ? `${r.duracionDias} días` : null]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                          {r.indicaciones && (
+                            <p className="mt-1 whitespace-pre-line text-xs text-muted-foreground">{r.indicaciones}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {data.paciente.salud && (
+          <section className="mt-8">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+              <ShieldCheck className="size-5 text-primary" />
+              Mi información de salud
+            </h2>
+            <div className="mt-3 space-y-2 rounded-xl border border-border bg-card p-4">
+              <SaludFila etiqueta="Alergias" valor={data.paciente.salud.alergias} />
+              <SaludFila etiqueta="Antecedentes" valor={data.paciente.salud.antecedentes} />
+              <SaludFila etiqueta="Medicación actual" valor={data.paciente.salud.medicacion} />
+              {data.paciente.salud.gestacion && (
+                <SaludFila etiqueta="Gestación" valor="Sí" />
+              )}
+              <p className="pt-1 text-xs text-muted-foreground">
+                Si algún dato está desactualizado, avísanos en tu próxima visita.
+              </p>
             </div>
           </section>
         )}

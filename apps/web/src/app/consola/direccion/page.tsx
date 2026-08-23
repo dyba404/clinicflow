@@ -1,14 +1,13 @@
 import { hasPermission } from "@clinicflow/core";
 import type { StaffRole } from "@clinicflow/core";
 import { redirect } from "next/navigation";
-import { and, desc, eq, gte, isNull, asc, count, sql } from "drizzle-orm";
+import { and, desc, eq, gte, asc, sql } from "drizzle-orm";
 import {
   getDb,
   appointments,
   payments,
   surgeries,
   beds,
-  bedAssignments,
   admissions,
 } from "@clinicflow/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +40,6 @@ export default async function DireccionPage() {
   const db = getDb();
   const lima = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" });
   const ahora = new Date();
-  const hoy = lima.format(ahora);
   const dias = 30;
   const desde = lima.format(new Date(ahora.getTime() - dias * 86_400_000));
 

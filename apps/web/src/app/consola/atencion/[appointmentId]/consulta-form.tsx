@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import {
   Activity,
   ClipboardList,
+  Eye,
+  EyeOff,
   FlaskConical,
   Plus,
   Save,
@@ -20,8 +22,14 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Cie10Autocomplete } from "@/components/console/cie10-autocomplete";
+import { cn } from "@/lib/utils";
 
-type DiagnosticoConsulta = { codigo: string; descripcion: string | null; esPrincipal: boolean };
+type DiagnosticoConsulta = {
+  codigo: string;
+  descripcion: string | null;
+  esPrincipal: boolean;
+  ocultoPortal: boolean;
+};
 type RecetaConsulta = {
   id: string;
   medicamento: string;
@@ -39,6 +47,8 @@ export type ConsultaInicial = {
   evaluacion: string | null;
   plan: string | null;
   constantes: Record<string, string> | null;
+  publicadoAt: string | null;
+  publicarNota: boolean;
   diagnosticos: DiagnosticoConsulta[];
   recetas: RecetaConsulta[];
 };
@@ -105,6 +115,9 @@ export function ConsultaAtencion({
   const [ordenIndicacion, setOrdenIndicacion] = useState("");
   const [ordenPrioridad, setOrdenPrioridad] = useState("0");
 
+  const [publicadoAt, setPublicadoAt] = useState<string | null>(consultaInicial?.publicadoAt ?? null);
+  const [publicarNota, setPublicarNota] = useState(consultaInicial?.publicarNota ?? false);
+
   function guardarConsulta(e: FormEvent) {
     e.preventDefault();
     start(async () => {
@@ -158,8 +171,31 @@ export function ConsultaAtencion({
         toast.error(`No se pudo agregar el diagnóstico: ${j.error ?? "error"}`);
         return;
       }
-      setDiagnosticos((prev) => [...prev, { codigo, descripcion, esPrincipal: false }]);
+      setDiagnosticos((prev) => [...prev, { codigo, descripcion, esPrincipal: false, ocultoPortal: false }]);
       toast.success("Diagnóstico agregado.");
+    });
+  }
+
+  function toggleOcultoPortal(codigo: string, oculto: boolean) {
+    if (!consultaId) return;
+    start(async () => {
+      const res = await fetch(
+        `/api/consultas/${consultaId}/diagnosticos/${encodeURIComponent(codigo)}/portal`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ocultoPortal: oculto }),
+        },
+      );
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(`No se pudo actualizar la visibilidad: ${j.error ?? "error"}`);
+        return;
+      }
+      setDiagnosticos((prev) =>
+        prev.map((d) => (d.codigo === codigo ? { ...d, ocultoPortal: oculto } : d)),
+      );
+      toast.success(oculto ? "Diagnóstico oculto en el portal." : "Diagnóstico visible en el portal.");
     });
   }
 
@@ -292,6 +328,49 @@ export function ConsultaAtencion({
     });
   }
 
+  function publicarConsulta() {
+    if (!consultaId) {
+      toast.error("Guarda la consulta antes de publicarla.");
+      return;
+    }
+    start(async () => {
+      const res = await fetch(`/api/consultas/${consultaId}/publicar`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "publicar", publicarNota }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(`No se pudo publicar: ${j.error ?? "error"}`);
+        return;
+      }
+      setPublicadoAt(new Date().toISOString());
+      toast.success("Consulta publicada en el portal del paciente.");
+      router.refresh();
+    });
+  }
+
+  function despublicarConsulta() {
+    if (!consultaId) return;
+    const motivo = window.prompt("Motivo para retirar la consulta del portal:");
+    if (!motivo || !motivo.trim()) return;
+    start(async () => {
+      const res = await fetch(`/api/consultas/${consultaId}/publicar`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "despublicar", motivo: motivo.trim() }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(`No se pudo retirar: ${j.error ?? "error"}`);
+        return;
+      }
+      setPublicadoAt(null);
+      toast.success("Consulta retirada del portal.");
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -365,6 +444,55 @@ export function ConsultaAtencion({
         <CardHeader className="p-5 pb-4">
           <CardTitle className="flex items-center gap-2 text-sm font-medium">
             <ClipboardList className="size-4 text-primary" />
+            Portal del paciente
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 p-5 pt-0">
+          {!consultaId ? (
+            <p className="text-sm text-muted-foreground">
+              Guarda la consulta para poder publicarla en el portal del paciente.
+            </p>
+          ) : publicadoAt ? (
+            <>
+              <p className="text-sm text-foreground">
+                Esta consulta está <span className="font-semibold">visible en el portal</span> del
+                paciente (motivo, plan y diagnósticos no ocultos).
+              </p>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" disabled={guardando} onClick={despublicarConsulta}>
+                  Retirar del portal
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Al publicar, el paciente verá el motivo, el plan y los diagnósticos (puedes ocultar
+                diagnósticos sensibles). La nota SOAP completa solo se muestra si lo activas.
+              </p>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={publicarNota}
+                  onChange={(e) => setPublicarNota(e.target.checked)}
+                  className="size-4 rounded border-input"
+                />
+                Mostrar también la nota SOAP completa
+              </label>
+              <div className="flex items-center gap-2">
+                <Button type="button" size="sm" disabled={guardando} onClick={publicarConsulta}>
+                  Publicar en el portal
+                </Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="p-5 pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <ClipboardList className="size-4 text-primary" />
             Diagnósticos (CIE-10)
           </CardTitle>
         </CardHeader>
@@ -398,6 +526,25 @@ export function ConsultaAtencion({
                           Marcar principal
                         </Button>
                       )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "h-7 px-2 text-xs",
+                          d.ocultoPortal ? "text-amber-600" : "text-muted-foreground",
+                        )}
+                        disabled={guardando}
+                        onClick={() => toggleOcultoPortal(d.codigo, !d.ocultoPortal)}
+                        title={
+                          d.ocultoPortal
+                            ? "Oculto en el portal del paciente. Clic para mostrar."
+                            : "Visible en el portal del paciente. Clic para ocultar."
+                        }
+                      >
+                        {d.ocultoPortal ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        {d.ocultoPortal ? "Oculto" : "Visible"}
+                      </Button>
                       <Button
                         type="button"
                         variant="ghost"
