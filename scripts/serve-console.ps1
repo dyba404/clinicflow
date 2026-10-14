@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $webRoot = Join-Path $repoRoot "apps\web"
 $node = (Get-Command node).Source
-$logDir = Join-Path $env:TEMP "opencode"
+$logDir = Join-Path $env:TEMP "clinicflow-console"
 $outLog = Join-Path $logDir "next-out.log"
 $errLog = Join-Path $logDir "next-err.log"
 
