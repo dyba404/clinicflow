@@ -24,7 +24,6 @@ y portal de paciente con login.
 - `docs/05-modulos-topologia.md` — topología por módulo (facturación, inventario, etc.)
 - `docs/06-estados-protocolos.md` — máquinas de estado y protocolos de deshacer/corrección
 - `docs/10-capacitacion.md` — capacitación y guion del video demo
-- `docs/99-sesion-estado.md` — punto de reanudación de sesiones
 
 ## Estructura
 

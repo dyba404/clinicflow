@@ -22,7 +22,6 @@ compose prod fail-closed).
 | UI | Design system propio (teal clínico + neutros cálidos, español día 1, shadcn/ui + Tailwind). Instalable como PWA con modo offline (IndexedDB) |
 | Hosting | Heroku con crédito Student Pack → VPS barato al tener MRR (compose prod portable fail-closed) |
 | Stack | TypeScript/Node monorepo (npm workspaces), Next.js 15, Postgres 16, docker-compose fail-closed con cron supercronic |
-| Referencias de diseño | `.references/` clonadas: medplum (Apache-2.0, FHIR), openemr (GPL-3.0, flujo lab/consulta), openmrs (Visita/Encuentro/Obs/Ubicación), lycet/greenter/whap (fiscal/WhatsApp) |
 | Ruta local | `~/Documents/projects/clinicflow` |
 
 ## Modelo de ingreso (nosotros)
@@ -38,7 +37,7 @@ compose prod fail-closed).
 - Tiempo de implementación por clínica < 2 semanas (migración de datos + capacitación)
 
 ## Estado
-OLAs 0-4 completas y verificadas (ver `99-sesion-estado.md`): núcleo de consulta
+OLAs 0-4 completas y verificadas: núcleo de consulta
 externa (OLA 1), hospitalización + laboratorio + farmacia (OLA 2), quirófano +
 UCI + facturación institucional (OLA 3), portal del paciente + hardening
 (OLA 4). OLA 5/6 en curso: portal con login real, series de citas,

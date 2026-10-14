@@ -60,7 +60,6 @@ Windows 11 24H2
 
 - Código en Windows; los contenedores solo corren servicios (nada montado desde Windows salvo el compose vía `/mnt/c`).
 - Contenedores renombrados: `clinicflow-db`, `clinicflow-lycet`, `clinicflow-mailpit`, `clinicflow-whatsmock`.
-- `.references/` (gitignored) clonada en `clinicflow/.references/`: medplum (Apache-2.0), openemr (GPL-3.0), openmrs, lycet, greenter, whap.
 - Desde Windows: `postgres://clinicflow:clinicflow_dev@localhost:5433/clinicflow` (ver `.env.local.example`).
 
 **VM WSL compartida con odontoflow (keep-alive):**
@@ -131,7 +130,6 @@ Host (VPS / máquina de despliegue)
 │   ├── ui/          → design system (tokens teal, shadcn/ui)
 │   ├── core/        → dominio: roles, permisos, estados, slots, caja
 │   └── db/          → schema + migraciones
-└── .references/     → medplum, openemr, openmrs, lycet, greenter, whap (gitignored)
 ```
 
 ## Checklist pre-producción (EXTERNO, pendiente)

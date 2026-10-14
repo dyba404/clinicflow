@@ -4,10 +4,10 @@ $proj = "C:\Users\Administrator\Documents\projects\clinicflow"
 
 function Step($m) { Write-Host "`n== $m ==" -ForegroundColor Cyan }
 
-Step "1/6 Verificando WSL"
+Step "1/5 Verificando WSL"
 wsl.exe --status
 
-Step "2/6 Instalando Ubuntu (si no existe)"
+Step "2/5 Instalando Ubuntu (si no existe)"
 $distros = wsl.exe -l -q
 if ($distros -notmatch "Ubuntu") {
     wsl.exe --install -d Ubuntu --no-launch
@@ -20,7 +20,7 @@ if ($distros -notmatch "Ubuntu") {
 wsl.exe --shutdown
 Start-Sleep 3
 
-Step "3/6 Instalando Docker en Ubuntu"
+Step "3/5 Instalando Docker en Ubuntu"
 wsl.exe -d Ubuntu -u dev -- bash -lc "
 set -e
 if command -v docker &>/dev/null; then
@@ -38,25 +38,9 @@ sudo usermod -aG docker \$(whoami)
 sudo service docker start
 "
 
-Step "4/6 Verificando docker"
+Step "4/5 Verificando docker"
 wsl.exe -d Ubuntu -u dev -- bash -lc "docker run --rm hello-world && docker compose version"
 
-Step "5/6 Referencias (.references)"
-Set-Location $proj
-if (-not (Test-Path ".references")) { New-Item -ItemType Directory ".references" | Out-Null }
-$repos = @(
-    @{ n="saas-starter-kit"; u="https://github.com/boxyhq/saas-starter-kit.git" },
-    @{ n="lycet"; u="https://github.com/giansalex/lycet.git" },
-    @{ n="greenter"; u="https://github.com/thegreenter/greenter.git" },
-    @{ n="open-salon"; u="https://github.com/clawnify/open-salon.git" },
-    @{ n="shadcn-admin"; u="https://github.com/satnaing/shadcn-admin.git" }
-)
-foreach ($r in $repos) {
-    $p = ".references\$($r.n)"
-    if (Test-Path $p) { Write-Host "$($r.n) ya clonado"; continue }
-    & $git clone --depth 1 $r.u $p
-}
-
-Step "6/6 Estado final"
+Step "5/5 Estado final"
 wsl.exe -d Ubuntu -u dev -- docker compose version
-Write-Host "`nListo. Postgres/docker OK. Abre opencode y escribe 'continua'." -ForegroundColor Green
+Write-Host "`nListo. Postgres/docker OK." -ForegroundColor Green

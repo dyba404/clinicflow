@@ -14,10 +14,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\setup-post-reboot.ps1
 3. Habilita systemd + sudo NOPASSWD en Ubuntu
 4. Instala Docker Engine + compose plugin (repo oficial Docker)
 5. Corre `docker run --rm hello-world` para verificar
-6. Clona los 5 repos de referencia en `.references/` (si faltan)
 
-Cuando termine con exito: abrir opencode en `C:\Users\Administrator\Documents\projects\clinicflow`
-y decir `continua` para retomar con Drizzle/DB + M1.
 
 ## backup.ps1
 Genera un respaldo de la base de datos Postgres (contenedor `clinicflow-db` en WSL/Ubuntu).

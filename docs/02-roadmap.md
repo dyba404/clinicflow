@@ -15,14 +15,9 @@ queda en el repo original. Aquí solo se registra lo de clinicflow.
       clinicflow = 5433 BD · 3112 app/sidecar · 8091 lycet · 1026/8026 Mailpit · 3011 whatsmock;
       odontoflow retiene 5432 / 3111 / 8090 / 1025 / 8025 / 3010
 - [x] Contenedores renombrados: clinicflow-db, clinicflow-lycet, clinicflow-mailpit, clinicflow-whatsmock
-- [x] `.references/` clonadas en clinicflow/.references:
-      medplum (Apache-2.0) → modelo FHIR para extracción de diseño de esquema, scheduling y access-policy
-      openemr (GPL-3.0) → referencia de flujo de lectura clínica (orden→toma→resultado→validación→liberación, patient_tracker, SQL)
-      openmrs → referencia Visita / Encuentro / Obs / Ubicación
-      lycet / greenter / whap → fiscal y WhatsApp (copiados como estaban)
-- [x] Docs reescritas para clinicflow (archivos 00-06); 10 y 99 los mantiene otro agente
+- [x] Docs reescritas para clinicflow (archivos 00-06)
 - [x] `npm install` limpio
-- [x] npm install / typecheck / lint verificado (Gate OLA 0, ver 99-sesion-estado)
+- [x] npm install / typecheck / lint verificado (Gate OLA 0)
 
 **Salida:** workspace clinicflow corre sin tocar odontoflow; listo para OLA 1.
 
