@@ -5,6 +5,15 @@ multi-especialidad, agenda, sala de espera, caja y facturación electrónica SUN
 Multi-tenant con roles por staff. Crecimiento por olas: hospitalización, laboratorio,
 imagen, quirófano y farmacia.
 
+## Relación con odontoflow
+
+Clinicflow es la generalización multi-especialidad de [odontoflow](https://github.com/dyba404/odontoflow),
+un SaaS dental en producción real. Comparten arquitectura (monorepo npm workspaces,
+Next.js 15 + Drizzle + packages core/db/ui, sidecar Greenter para SUNAT) pero el dominio
+de clinicflow es propio: agenda round-robin con feriados, hospitalización con
+depósitos/liquidación/handover, consentimientos v2, series y planes de tratamiento,
+y portal de paciente con login.
+
 ## Documentación
 
 - `docs/00-resumen.md` — decisiones clave

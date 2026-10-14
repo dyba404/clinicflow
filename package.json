@@ -2,7 +2,7 @@
   "name": "clinicflow",
   "private": true,
   "version": "0.1.0",
-  "description": "SaaS de gestión para consultorios odontológicos en Perú",
+  "description": "SaaS HIS multi-especialidad para clínicas privadas en Perú: ficha clínica, agenda, caja y facturación electrónica SUNAT",
   "workspaces": [
     "apps/*",
     "packages/*"
