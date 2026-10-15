@@ -45,4 +45,4 @@ consentimientos v2 con firma, planes de tratamiento, no-show con recuperación,
 round-robin + feriados y hospitalización 2.0 (depósitos, liquidación, handover).
 Gating por plan implementado (`lib/plans.ts`, ~20 rutas con `gatePlan`).
 Pendiente externo: VPS/dominio, Resend, WhatsApp Meta, CI remoto
-(ver checklist en `01-topologia.md`).
+(ver checklist en `arquitectura.md`).

@@ -4,7 +4,7 @@ Estado a OLA 0 (2026-08-19): capa horizontal heredada de odontoflow v1.6.2 y por
 "HEREDADO" = funcionando en el workspace tras el port; "OLA n" = planificado en esa ola.
 Esquema multi-tenant: toda tabla lleva `tenant_id` (= teams.id) salvo catálogos
 globales (cie10) o llaves 1:1 por tenant. Máquinas de estado y protocolos de
-corrección: `docs/06-estados-protocolos.md`.
+corrección: `docs/estados.md`.
 
 ```
                      ┌────────────────────────────────────────────────────┐
@@ -285,7 +285,7 @@ corrección: `docs/06-estados-protocolos.md`.
 |---|---|
 | Tablas | `patient_magic_tokens`, `appointments`, `installments`, `receipts`, `quotes`, `signed_consents`; en OLA 4 + `lab_results`/`imaging_reports` (solo liberados) |
 | Endpoints | `/public/[clinica]/portal/[token]/*` · `GET /api/portal/*` con validación de propiedad |
-| Regla | Whitelist estricta (ver 03-roles). Nada de lista/agenda/ocupación. Resultados solo tras `liberada` |
+| Regla | Whitelist estricta (ver roles). Nada de lista/agenda/ocupación. Resultados solo tras `liberada` |
 | Dependencia externa | Ninguna |
 | Estado | HEREDADO base; OLA 4 amplía |
 

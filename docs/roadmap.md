@@ -15,7 +15,7 @@ queda en el repo original. Aquí solo se registra lo de clinicflow.
       clinicflow = 5433 BD · 3112 app/sidecar · 8091 lycet · 1026/8026 Mailpit · 3011 whatsmock;
       odontoflow retiene 5432 / 3111 / 8090 / 1025 / 8025 / 3010
 - [x] Contenedores renombrados: clinicflow-db, clinicflow-lycet, clinicflow-mailpit, clinicflow-whatsmock
-- [x] Docs reescritas para clinicflow (archivos 00-06)
+- [x] Docs reescritas para clinicflow (7 archivos)
 - [x] `npm install` limpio
 - [x] npm install / typecheck / lint verificado (Gate OLA 0)
 

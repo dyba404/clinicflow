@@ -83,7 +83,7 @@ hace `POST` con `Bearer CRON_SECRET` a `http://web:3111/api/cron/*`. 6 jobs:
 | `seguimiento` | Diario | Seguimiento de presupuestos enviados hace ≥3 días (1er aviso) y ≥7 (final) + cuotas vencidas. |
 
 En desarrollo local (Windows) los mismos endpoints se agendan con
-`scripts/instalar-cron.ps1` (**dev-only**). Detalle en `docs/01-topologia.md`.
+`scripts/instalar-cron.ps1` (**dev-only**). Detalle en `docs/arquitectura.md`.
 
 ## Variables de entorno
 
