@@ -8,7 +8,7 @@ imagen, quirófano y farmacia.
 ## Relación con odontoflow
 
 Clinicflow es la generalización multi-especialidad de [odontoflow](https://github.com/dyba404/odontoflow),
-un SaaS dental en producción real. Comparten arquitectura (monorepo npm workspaces,
+un SaaS dental propio. Comparten arquitectura (monorepo npm workspaces,
 Next.js 15 + Drizzle + packages core/db/ui, sidecar Greenter para SUNAT) pero el dominio
 de clinicflow es propio: agenda round-robin con feriados, hospitalización con
 depósitos/liquidación/handover, consentimientos v2, series y planes de tratamiento,
@@ -16,14 +16,8 @@ y portal de paciente con login.
 
 ## Documentación
 
-- `docs/00-resumen.md` — decisiones clave
-- `docs/01-topologia.md` — arquitectura y despliegue
-- `docs/02-roadmap.md` — fases M0→M5 + backlog post-M5 (incluido en 1.0)
-- `docs/03-roles-diseno.md` — roles, permisos, superficies, privacidad
-- `docs/04-modelo-datos.md` — schema multi-tenant (migración 0004)
-- `docs/05-modulos-topologia.md` — topología por módulo (facturación, inventario, etc.)
-- `docs/06-estados-protocolos.md` — máquinas de estado y protocolos de deshacer/corrección
-- `docs/10-capacitacion.md` — capacitación y guion del video demo
+Arquitectura (`docs/01`), modelo de datos (`docs/04`), roles y privacidad (`docs/03`),
+estados y protocolos (`docs/06`) y roadmap (`docs/02`), todo en `docs/`.
 
 ## Estructura
 
@@ -50,9 +44,8 @@ npm run dev                   # http://localhost:3112
 
 Copia `.env.local.example` a `.env.local` y ajusta según la tabla de variables de entorno.
 
-**NOTA PUERTOS (crítica):** clinicflow convive en el mismo host con odontoflow, que
-sigue corriendo y ocupa `5432/8090/3111/1025/8025/3010`. clinicflow usa puertos
-separados:
+**Puertos:** clinicflow convive en el mismo host con odontoflow
+(`5432/8090/3111/1025/8025/3010`), así que usa puertos separados:
 
 | Servicio | odontoflow | clinicflow |
 |---|---|---|
@@ -64,7 +57,7 @@ separados:
 
 No cambiar estos puertos sin actualizar `docker-compose.yml` y `.env.local` a la vez.
 
-## Producción (Docker Compose)
+## Despliegue (Docker Compose)
 
 `docker-compose.prod.yml` levanta 4 contenedores: `db` (Postgres 16, sin puerto expuesto al
 host), `lycet` (sidecar Greenter), `web` (Next.js standalone en :3111) y `cron`
@@ -132,7 +125,7 @@ Seed crea 5 usuarios (password: `demo1234`, dominio `@demo.clinicflow.pe`):
 | `npm run db:migrate` | Aplica migraciones. |
 | `npm run db:seed` | Seed con datos demo. |
 | `npm run of:up` / `of:down` / `of:status` / `of:db` | Docker Compose (WSL2): subir/bajar/estado/psql. |
-| `instalar-cron` | **DEV-ONLY (Windows)**: tareas programadas `OfCron`/`OfCronDiario` → `localhost:3112/api/cron/*` (requiere `CRON_SECRET`). En producción lo reemplaza el contenedor `cron` (supercronic) de `docker-compose.prod.yml`. |
+| `instalar-cron` | **DEV-ONLY (Windows)**: tareas programadas `OfCron`/`OfCronDiario` → `localhost:3112/api/cron/*` (requiere `CRON_SECRET`). En despliegue lo reemplaza el contenedor `cron` (supercronic) de `docker-compose.prod.yml`. |
 | `scripts/backup.ps1` | `pg_dump` vía WSL/docker → `backups/*.dump` (retención 30 días). |
 | `GET /api/health` | Health check: `SELECT 1` con timeout 3s → 200 ok / 503. |
 
